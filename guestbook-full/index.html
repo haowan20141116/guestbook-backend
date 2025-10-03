@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言网站</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            color: white;
+        }
+        .site-title {
+            text-align: center;
+            flex: 1;
+        }
+        .site-title h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .auth-icon {
+            position: relative;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+        }
+        .auth-icon:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .auth-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 300px;
+            z-index: 1000;
+            display: none;
+        }
+        .auth-dropdown.show {
+            display: block;
+        }
+        .dropdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+        .main-content {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .message-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            flex: 1;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .logout-btn, .ban-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+        .delete-btn, .pin-btn, .file-delete-btn, .file-comment-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            padding: 6px 12px;
+            font-size: 14px;
+            width: auto;
+            margin-left: 10px;
+        }
+        .pin-btn {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #333;
+        }
+        .file-comment-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+        .auth-toggle {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .auth-toggle button {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+        .messages-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .message-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            position: relative;
+        }
+        .pinned-message {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-left: 4px solid #FFD700;
+        }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .message-author {
+            font-weight: 700;
+            color: #333;
+        }
+        .message-time {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .message-content {
+            color: #555;
+            line-height: 1.5;
+        }
+        .pinned-icon {
+            color: #FFD700;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .admin-controls {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e1e5e9;
+        }
+        .password-change-form, .username-change-form, .user-management-form, .title-change-form, .file-upload-form {
+            display: none;
+        }
+        .show-form-btn {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .show-form-btn button {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+        }
+        .notification.show {
+            transform: translateX(0);
+        }
+        .notification.success {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+        .notification.error {
+            background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+        }
+        .admin-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 999;
+        }
+        .user-list {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .user-item {
+            padding: 8px;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-item:last-child {
+            border-bottom: none;
+        }
+        .user-status {
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .user-status.banned {
+            background: #ff6b6b;
+            color: white;
+        }
+        .user-status.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .user-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .login-required {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #ff6b6b;
+            font-size: 8rem;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+        .login-required:hover {
+            opacity: 0.6;
+        }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin: 0 auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 {
+            color: #333;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .file-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .file-download {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .file-download:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .files-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e1e5e9;
+        }
+        .files-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.2rem;
+        }
+        .no-files {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+        }
+        .file-comment {
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+        .file-comment-input {
+            width: 100%;
+            padding: 6px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .site-title h1 {
+                font-size: 2rem;
+            }
+            .auth-icon {
+                margin-right: 0;
+            }
+            .main-content {
+                flex-direction: column;
+            }
+            .message-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .delete-btn, .pin-btn, .file-delete-btn, .file-comment-btn {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+            .login-required {
+                font-size: 6rem;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-indicator" id="adminIndicator">管理员模式</div>
+    <div class="container">
+        <header>
+            <div class="auth-icon" id="authIcon">
+                👤
+            </div>
+            <div class="site-title">
+                <h1 id="siteTitle">📝 留言网站</h1>
+                <p>欢迎来到我们的留言平台！</p>
+            </div>
+        </header>
+        <div class="auth-dropdown" id="authDropdown">
+            <div class="dropdown-header">
+                <h3>用户认证</h3>
+                <button class="close-btn" id="closeAuthDropdown">&times;</button>
+            </div>
+            <div id="loginSection">
+                <h4>🔐 登录</h4>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">用户名</label>
+                        <input type="text" id="loginUsername" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">密码</label>
+                        <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                    </div>
+                    <button type="submit" class="btn">登录</button>
+                </form>
+                <div class="auth-toggle">
+                    <button id="showRegisterBtn">还没有账号？点击注册</button>
+                </div>
+            </div>
+            <div id="registerSection" style="display: none;">
+                <h4>📝 注册</h4>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="registerUsername">用户名</label>
+                        <input type="text" id="registerUsername" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">密码</label>
+                        <input type="password" id="registerPassword" placeholder="请输入密码" required>
+                    </div>
+                    <button type="submit" class="btn">注册</button>
+                </form>
+                <div class="auth-toggle">
+                    <button id="showLoginBtn">已有账号？点击登录</button>
+                </div>
+            </div>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <h4>👤 当前用户</h4>
+                <p id="currentUsername"></p>
+                <button class="btn logout-btn" id="logoutBtn">退出登录</button>
+                <div class="admin-controls" id="adminControls" style="display: none; margin-top: 15px;">
+                    <div class="show-form-btn">
+                        <button id="showTitleFormBtn">修改网站标题</button>
+                    </div>
+                    <form id="titleChangeForm" class="title-change-form">
+                        <div class="form-group">
+                            <label for="newSiteTitle">新标题</label>
+                            <input type="text" id="newSiteTitle" placeholder="请输入新标题" required>
+                        </div>
+                        <button type="submit" class="btn">更新标题</button>
+                    </form>
+                    <div class="show-form-btn">
+                        <button id="showUsernameFormBtn">修改管理员用户名</button>
+                    </div>
+                    <form id="usernameChangeForm" class="username-change-form">
+                        <div class="form-group">
+                            <label for="newAdminUsername">新用户名</label>
+                            <input type="text" id="newAdminUsername" placeholder="请输入新用户名" required>
+                        </div>
+                        <button type="submit" class="btn">更新用户名</button>
+                    </form>
+                    <div class="show-form-btn">
+                        <button id="showPasswordFormBtn">修改管理员密码</button>
+                    </div>
+                    <form id="passwordChangeForm" class="password-change-form">
+                        <div class="form-group">
+                            <label for="newPassword">新密码</label>
+                            <input type="password" id="newPassword" placeholder="请输入新密码" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">确认新密码</label>
+                            <input type="password" id="confirmPassword" placeholder="请再次输入新密码" required>
+                        </div>
+                        <button type="submit" class="btn">更新密码</button>
+                    </form>
+                    <div class="show-form-btn">
+                        <button id="showFileUploadBtn">文件管理</button>
+                    </div>
+                    <form id="fileUploadForm" class="file-upload-form">
+                        <div class="form-group">
+                            <label for="fileInput">上传文件</label>
+                            <input type="file" id="fileInput" multiple>
+                        </div>
+                        <button type="submit" class="btn">上传文件</button>
+                        <div class="user-list" id="fileList">
+                            <!-- 文件列表将在这里显示 -->
+                        </div>
+                    </form>
+                    <div class="show-form-btn">
+                        <button id="showUserManagementBtn">用户管理</button>
+                    </div>
+                    <form id="userManagementForm" class="user-management-form">
+                        <div class="form-group">
+                            <label for="manageUser">选择用户</label>
+                            <select id="manageUser">
+                                <!-- 用户列表将在这里动态生成 -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="userAction">操作</label>
+                            <select id="userAction">
+                                <option value="ban">封禁用户</option>
+                                <option value="unban">解封用户</option>
+                                <option value="delete">删除用户</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">执行操作</button>
+                        <div class="user-list" id="userList">
+                            <!-- 用户列表详情 -->
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="message-section">
+                <h2 class="section-title">💬 留言板</h2>
+                <div id="messageFormContainer">
+                    <!-- 留言表单或登录提示将在这里显示 -->
+                </div>
+                <div class="messages-container" id="messagesContainer">
+                    <!-- 留言将在这里显示 -->
+                </div>
+                <div class="files-section">
+                    <h3 class="files-title">📁 上传的文件</h3>
+                    <div id="filesContainer">
+                        <!-- 文件下载区域 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 注册模态框 -->
+    <div class="modal-overlay" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📝 用户注册</h3>
+                <button class="modal-close" id="closeRegisterModal">&times;</button>
+            </div>
+            <form id="modalRegisterForm">
+                <div class="form-group">
+                    <label for="modalRegisterUsername">用户名</label>
+                    <input type="text" id="modalRegisterUsername" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="modalRegisterPassword">密码</label>
+                    <input type="password" id="modalRegisterPassword" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="btn">注册</button>
+            </form>
+        </div>
+    </div>
+    <div class="notification" id="notification"></div>
+    <script>
+        // ========== 新增：后端 API 地址 ==========
+        const API_BASE = 'http://localhost:3000/api';
+
+        // ========== 替换 localStorage 为 API 调用 ==========
+        async function loadAllData() {
+            try {
+                const res = await fetch(`${API_BASE}/data`);
+                if (!res.ok) throw new Error('后端未响应');
+                return await res.json();
+            } catch (err) {
+                // 如果后端不可用，回退到 localStorage（保持兼容）
+                return {
+                    users: JSON.parse(localStorage.getItem('users') || '[]'),
+                    messages: JSON.parse(localStorage.getItem('messages') || '[]'),
+                    siteTitle: localStorage.getItem('siteTitle') || '📝 留言网站',
+                    uploadedFiles: JSON.parse(localStorage.getItem('uploadedFiles') || '[]')
+                };
+            }
+        }
+
+        async function saveAllData(data) {
+            try {
+                await fetch(`${API_BASE}/data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } catch (err) {
+                // 如果后端不可用，回退到 localStorage
+                localStorage.setItem('users', JSON.stringify(data.users));
+                localStorage.setItem('messages', JSON.stringify(data.messages));
+                localStorage.setItem('siteTitle', data.siteTitle);
+                localStorage.setItem('uploadedFiles', JSON.stringify(data.uploadedFiles));
+            }
+        }
+
+        // ========== 原始逻辑几乎不变，仅替换数据保存方式 ==========
+        let users = [];
+        let messages = [];
+        let siteTitle = '📝 留言网站';
+        let uploadedFiles = [];
+        let currentUser = null;
+        let isLoggedIn = false;
+
+        // 初始化数据
+        loadAllData().then(data => {
+            ({ users, messages, siteTitle, uploadedFiles } = data);
+            if (users.length === 0) {
+                users.push({
+                    username: '1',
+                    password: '1',
+                    isAdmin: true,
+                    isBanned: false
+                });
+                saveAllData({ users, messages, siteTitle, uploadedFiles });
+            }
+            document.getElementById('siteTitle').textContent = siteTitle;
+            renderMessages();
+        });
+
+        // DOM 元素（完全不变）
+        const authIcon = document.getElementById('authIcon');
+        const authDropdown = document.getElementById('authDropdown');
+        const closeAuthDropdown = document.getElementById('closeAuthDropdown');
+        const loginSection = document.getElementById('loginSection');
+        const registerSection = document.getElementById('registerSection');
+        const userInfo = document.getElementById('userInfo');
+        const currentUsername = document.getElementById('currentUsername');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const modalRegisterForm = document.getElementById('modalRegisterForm');
+        const titleChangeForm = document.getElementById('titleChangeForm');
+        const usernameChangeForm = document.getElementById('usernameChangeForm');
+        const passwordChangeForm = document.getElementById('passwordChangeForm');
+        const fileUploadForm = document.getElementById('fileUploadForm');
+        const userManagementForm = document.getElementById('userManagementForm');
+        const messageFormContainer = document.getElementById('messageFormContainer');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const adminControls = document.getElementById('adminControls');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const showRegisterBtn = document.getElementById('showRegisterBtn');
+        const showLoginBtn = document.getElementById('showLoginBtn');
+        const showTitleFormBtn = document.getElementById('showTitleFormBtn');
+        const showUsernameFormBtn = document.getElementById('showUsernameFormBtn');
+        const showPasswordFormBtn = document.getElementById('showPasswordFormBtn');
+        const showFileUploadBtn = document.getElementById('showFileUploadBtn');
+        const showUserManagementBtn = document.getElementById('showUserManagementBtn');
+        const notification = document.getElementById('notification');
+        const adminIndicator = document.getElementById('adminIndicator');
+        const manageUserSelect = document.getElementById('manageUser');
+        const userList = document.getElementById('userList');
+        const fileList = document.getElementById('fileList');
+        const registerModal = document.getElementById('registerModal');
+        const closeRegisterModal = document.getElementById('closeRegisterModal');
+        const fileInput = document.getElementById('fileInput');
+        const filesContainer = document.getElementById('filesContainer');
+
+        // 显示通知（完全不变）
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 渲染用户管理（完全不变）
+        function renderUserManagement() {
+            manageUserSelect.innerHTML = '';
+            userList.innerHTML = '';
+            users.forEach(user => {
+                if (!user.isAdmin) {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = user.username;
+                    manageUserSelect.appendChild(option);
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user-item';
+                    const statusClass = user.isBanned ? 'banned' : 'active';
+                    const statusText = user.isBanned ? '已封禁' : '正常';
+                    userDiv.innerHTML = `
+                        <span>${user.username}</span>
+                        <span class="user-status ${statusClass}">${statusText}</span>
+                    `;
+                    userList.appendChild(userDiv);
+                }
+            });
+        }
+
+        // 渲染文件列表（完全不变）
+        function renderFileList() {
+            fileList.innerHTML = '';
+            uploadedFiles.forEach((file, index) => {
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'file-item';
+                let deleteBtn = '';
+                let commentBtn = '';
+                if (isLoggedIn && currentUser && currentUser.isAdmin) {
+                    deleteBtn = `<button class="btn file-delete-btn" onclick="deleteFile(${index})">删除</button>`;
+                    commentBtn = `<button class="btn file-comment-btn" onclick="showCommentInput(${index})">注释</button>`;
+                }
+                let commentHTML = '';
+                if (file.comment) {
+                    commentHTML = `<div class="file-comment">📝 ${file.comment}</div>`;
+                }
+                fileDiv.innerHTML = `
+                    <div style="flex:1;">
+                        <span class="file-name">${file.name}</span>
+                        ${commentHTML}
+                        <div id="commentInput${index}" style="display:none;">
+                            <input type="text" class="file-comment-input" id="commentField${index}" placeholder="输入注释..." value="${file.comment || ''}">
+                            <button class="btn file-comment-btn" style="margin-top:5px;" onclick="saveComment(${index})">保存</button>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="${file.data}" download="${file.name}" class="file-download">下载</a>
+                        ${commentBtn}
+                        ${deleteBtn}
+                    </div>
+                `;
+                fileList.appendChild(fileDiv);
+            });
+        }
+
+        // 显示注释输入框（完全不变）
+        window.showCommentInput = function(index) {
+            document.querySelectorAll(`[id^="commentInput"]`).forEach(el => el.style.display = 'none');
+            document.getElementById(`commentInput${index}`).style.display = 'block';
+        };
+
+        // 保存注释（✅ 仅替换保存方式）
+        window.saveComment = function(index) {
+            const comment = document.getElementById(`commentField${index}`).value;
+            uploadedFiles[index].comment = comment;
+            saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+            renderFileList();
+            renderPublicFiles();
+            showNotification('注释已保存！', 'success');
+        };
+
+        // 渲染公共文件（完全不变）
+        function renderPublicFiles() {
+            if (uploadedFiles.length === 0) {
+                filesContainer.innerHTML = '<div class="no-files">暂无上传的文件！</div>';
+                return;
+            }
+            let filesHTML = '';
+            uploadedFiles.forEach((file, index) => {
+                let commentHTML = '';
+                if (file.comment) {
+                    commentHTML = `<div class="file-comment">📝 ${file.comment}</div>`;
+                }
+                filesHTML += `
+                    <div class="file-item">
+                        <div style="flex:1;">
+                            <span class="file-name">${file.name}</span>
+                            ${commentHTML}
+                        </div>
+                        <a href="${file.data}" download="${file.name}" class="file-download">下载</a>
+                    </div>
+                `;
+            });
+            filesContainer.innerHTML = filesHTML;
+        }
+
+        // 渲染留言（完全不变）
+        function renderMessages() {
+            messagesContainer.innerHTML = '';
+            const pinnedMessages = messages.filter(msg => msg.isPinned);
+            const regularMessages = messages.filter(msg => !msg.isPinned);
+            pinnedMessages.forEach((msg, index) => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message-item pinned-message';
+                messageDiv.dataset.index = messages.findIndex(m => m === msg);
+                let adminButtons = '';
+                if (isLoggedIn && currentUser && currentUser.isAdmin) {
+                    adminButtons = `
+                        <button class="btn delete-btn" onclick="deleteMessage(${messages.findIndex(m => m === msg)})">删除</button>
+                        <button class="btn pin-btn" onclick="togglePin(${messages.findIndex(m => m === msg)})">取消置顶</button>
+                    `;
+                } else if (isLoggedIn && currentUser && msg.author === currentUser.username) {
+                    adminButtons = `<button class="btn delete-btn" onclick="deleteMessage(${messages.findIndex(m => m === msg)})">删除</button>`;
+                }
+                const author = (msg.author === '1' && currentUser && currentUser.isAdmin) ? '管理员' : msg.author;
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-author">${author} <span class="pinned-icon">⚡</span></span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="message-time">${msg.timestamp}</span>
+                            ${adminButtons}
+                        </div>
+                    </div>
+                    <div class="message-content">${msg.content}</div>
+                `;
+                messagesContainer.appendChild(messageDiv);
+            });
+            regularMessages.forEach((msg, index) => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message-item';
+                messageDiv.dataset.index = messages.findIndex(m => m === msg);
+                let adminButtons = '';
+                if (isLoggedIn && currentUser && currentUser.isAdmin) {
+                    adminButtons = `
+                        <button class="btn delete-btn" onclick="deleteMessage(${messages.findIndex(m => m === msg)})">删除</button>
+                        <button class="btn pin-btn" onclick="togglePin(${messages.findIndex(m => m === msg)})">置顶</button>
+                    `;
+                } else if (isLoggedIn && currentUser && msg.author === currentUser.username) {
+                    adminButtons = `<button class="btn delete-btn" onclick="deleteMessage(${messages.findIndex(m => m === msg)})">删除</button>`;
+                }
+                const author = (msg.author === '1' && currentUser && currentUser.isAdmin) ? '管理员' : msg.author;
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-author">${author}</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="message-time">${msg.timestamp}</span>
+                            ${adminButtons}
+                        </div>
+                    </div>
+                    <div class="message-content">${msg.content}</div>
+                `;
+                messagesContainer.appendChild(messageDiv);
+            });
+            adminIndicator.style.display = (isLoggedIn && currentUser && currentUser.isAdmin) ? 'block' : 'none';
+            if (isLoggedIn) {
+                messageFormContainer.innerHTML = `
+                    <form id="messageForm">
+                        <div class="form-group">
+                            <label for="message">留言内容</label>
+                            <textarea id="message" placeholder="请输入您的留言内容..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn">发表留言</button>
+                    </form>
+                `;
+                document.getElementById('messageForm').addEventListener('submit', handleMessageSubmit);
+            } else {
+                messageFormContainer.innerHTML = `
+                    <div class="login-required" id="loginRequired">
+                        ×
+                    </div>
+                `;
+                document.getElementById('loginRequired').addEventListener('click', () => {
+                    showNotification('请先登录！', 'error');
+                });
+            }
+            renderPublicFiles();
+        }
+
+        // 处理留言提交（✅ 仅替换保存方式）
+        function handleMessageSubmit(e) {
+            e.preventDefault();
+            if (!isLoggedIn || !currentUser) {
+                showNotification('请先登录！', 'error');
+                return;
+            }
+            if (currentUser.isBanned) {
+                showNotification('您的账号已被封禁，无法发表留言！', 'error');
+                return;
+            }
+            const message = document.getElementById('message').value;
+            const timestamp = new Date().toLocaleString('zh-CN');
+            const author = currentUser.isAdmin ? '1' : currentUser.username;
+            messages.unshift({
+                author: author,
+                content: message,
+                timestamp: timestamp,
+                isPinned: false
+            });
+            saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+            renderMessages();
+            document.getElementById('message').value = '';
+            showNotification('留言发表成功！', 'success');
+        }
+
+        // 删除留言（✅ 仅替换保存方式）
+        window.deleteMessage = function(index) {
+            if (!isLoggedIn || !currentUser) {
+                showNotification('请先登录！', 'error');
+                return;
+            }
+            const msg = messages[index];
+            const canDelete = currentUser.isAdmin || (msg.author === currentUser.username);
+            if (!canDelete) {
+                showNotification('您只能删除自己的留言！', 'error');
+                return;
+            }
+            if (confirm('确定要删除这条留言吗？')) {
+                messages.splice(index, 1);
+                saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+                renderMessages();
+                showNotification('留言删除成功！', 'success');
+            }
+        };
+
+        // 置顶留言（✅ 仅替换保存方式）
+        window.togglePin = function(index) {
+            if (!isLoggedIn || !currentUser || !currentUser.isAdmin) {
+                showNotification('只有管理员可以置顶留言！', 'error');
+                return;
+            }
+            messages[index].isPinned = !messages[index].isPinned;
+            saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+            renderMessages();
+            showNotification(messages[index].isPinned ? '留言已置顶！' : '已取消置顶！', 'success');
+        };
+
+        // 删除文件（✅ 仅替换保存方式）
+        window.deleteFile = function(index) {
+            if (!isLoggedIn || !currentUser || !currentUser.isAdmin) {
+                showNotification('只有管理员可以删除文件！', 'error');
+                return;
+            }
+            if (confirm('确定要删除这个文件吗？')) {
+                uploadedFiles.splice(index, 1);
+                saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+                renderFileList();
+                renderPublicFiles();
+                showNotification('文件删除成功！', 'success');
+            }
+        };
+
+        // 登录、注册、退出等逻辑（完全不变，仅最后调用 saveAllData）
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                if (user.isBanned) {
+                    showNotification('该账号已被封禁！', 'error');
+                    return;
+                }
+                currentUser = user;
+                isLoggedIn = true;
+                loginForm.reset();
+                currentUsername.textContent = username;
+                userInfo.style.display = 'block';
+                loginSection.style.display = 'none';
+                if (user.isAdmin) {
+                    adminControls.style.display = 'block';
+                    renderUserManagement();
+                    renderFileList();
+                }
+                renderMessages();
+                showNotification('登录成功！', 'success');
+            } else {
+                showNotification('用户名或密码错误！', 'error');
+            }
+        });
+
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            if (users.find(u => u.username === username)) {
+                showNotification('用户名已存在，请选择其他用户名！', 'error');
+                return;
+            }
+            if (username.trim() === '' || password.trim() === '') {
+                showNotification('用户名和密码不能为空！', 'error');
+                return;
+            }
+            users.push({
+                username: username,
+                password: password,
+                isAdmin: false,
+                isBanned: false
+            });
+            saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+            registerForm.reset();
+            showNotification('注册成功！请登录。', 'success');
+            registerSection.style.display = 'none';
+            loginSection.style.display = 'block';
+        });
+
+        modalRegisterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('modalRegisterUsername').value;
+            const password = document.getElementById('modalRegisterPassword').value;
+            if (users.find(u => u.username === username)) {
+                showNotification('用户名已存在，请选择其他用户名！', 'error');
+                return;
+            }
+            if (username.trim() === '' || password.trim() === '') {
+                showNotification('用户名和密码不能为空！', 'error');
+                return;
+            }
+            users.push({
+                username: username,
+                password: password,
+                isAdmin: false,
+                isBanned: false
+            });
+            saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+            modalRegisterForm.reset();
+            registerModal.classList.remove('show');
+            showNotification('注册成功！请登录。', 'success');
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            isLoggedIn = false;
+            currentUser = null;
+            userInfo.style.display = 'none';
+            loginSection.style.display = 'block';
+            adminControls.style.display = 'none';
+            renderMessages();
+            showNotification('已退出登录', 'success');
+        });
+
+        titleChangeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newTitle = document.getElementById('newSiteTitle').value;
+            if (newTitle.trim() === '') {
+                showNotification('标题不能为空！', 'error');
+                return;
+            }
+            siteTitle = newTitle;
+            document.getElementById('siteTitle').textContent = siteTitle;
+            titleChangeForm.reset();
+            titleChangeForm.style.display = 'none';
+            showTitleFormBtn.textContent = '修改网站标题';
+            saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+            showNotification('网站标题修改成功！', 'success');
+        });
+
+        usernameChangeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newUsername = document.getElementById('newAdminUsername').value;
+            if (newUsername.trim() === '') {
+                showNotification('用户名不能为空！', 'error');
+                return;
+            }
+            if (users.find(u => u.username === newUsername && u.username !== currentUser.username)) {
+                showNotification('该用户名已被其他用户使用！', 'error');
+                return;
+            }
+            currentUser.username = newUsername;
+            const userIndex = users.findIndex(u => u.isAdmin);
+            if (userIndex !== -1) {
+                users[userIndex].username = newUsername;
+            }
+            currentUsername.textContent = newUsername;
+            usernameChangeForm.reset();
+            usernameChangeForm.style.display = 'none';
+            showUsernameFormBtn.textContent = '修改管理员用户名';
+            saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+            showNotification('管理员用户名修改成功！', 'success');
+        });
+
+        passwordChangeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (newPassword !== confirmPassword) {
+                showNotification('两次输入的密码不一致！', 'error');
+                return;
+            }
+            if (newPassword.length < 1) {
+                showNotification('密码不能为空！', 'error');
+                return;
+            }
+            currentUser.password = newPassword;
+            const userIndex = users.findIndex(u => u.isAdmin);
+            if (userIndex !== -1) {
+                users[userIndex].password = newPassword;
+            }
+            passwordChangeForm.reset();
+            passwordChangeForm.style.display = 'none';
+            showPasswordFormBtn.textContent = '修改管理员密码';
+            saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+            showNotification('管理员密码修改成功！', 'success');
+        });
+
+        fileUploadForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const files = fileInput.files;
+            if (files.length === 0) {
+                showNotification('请选择要上传的文件！', 'error');
+                return;
+            }
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedFiles.push({
+                        name: file.name,
+                        data: e.target.result,
+                        type: file.type,
+                        size: file.size,
+                        comment: ''
+                    });
+                    saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+                    renderFileList();
+                    renderPublicFiles();
+                };
+                reader.readAsDataURL(file);
+            });
+            fileInput.value = '';
+            showNotification('文件上传成功！', 'success');
+        });
+
+        userManagementForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const selectedUser = document.getElementById('manageUser').value;
+            const action = document.getElementById('userAction').value;
+            if (!selectedUser) {
+                showNotification('请选择要操作的用户！', 'error');
+                return;
+            }
+            const userIndex = users.findIndex(u => u.username === selectedUser);
+            if (userIndex === -1) {
+                showNotification('用户不存在！', 'error');
+                return;
+            }
+            switch (action) {
+                case 'ban':
+                    users[userIndex].isBanned = true;
+                    messages = messages.filter(msg => msg.author !== selectedUser);
+                    break;
+                case 'unban':
+                    users[userIndex].isBanned = false;
+                    break;
+                case 'delete':
+                    users.splice(userIndex, 1);
+                    messages = messages.filter(msg => msg.author !== selectedUser);
+                    break;
+            }
+            saveAllData({ users, messages, siteTitle, uploadedFiles }); // ✅ 关键修改
+            renderUserManagement();
+            renderMessages();
+            showNotification(action === 'ban' ? `用户 ${selectedUser} 已被封禁！` : 
+                          action === 'unban' ? `用户 ${selectedUser} 已解封！` : 
+                          `用户 ${selectedUser} 已被删除！`, 'success');
+        });
+
+        // 其他事件监听（完全不变）
+        showRegisterBtn.addEventListener('click', () => {
+            loginSection.style.display = 'none';
+            registerSection.style.display = 'block';
+        });
+        showLoginBtn.addEventListener('click', () => {
+            registerSection.style.display = 'none';
+            loginSection.style.display = 'block';
+        });
+        showTitleFormBtn.addEventListener('click', () => {
+            titleChangeForm.style.display = titleChangeForm.style.display === 'none' ? 'block' : 'none';
+            showTitleFormBtn.textContent = titleChangeForm.style.display === 'block' ? '取消修改' : '修改网站标题';
+        });
+        showUsernameFormBtn.addEventListener('click', () => {
+            usernameChangeForm.style.display = usernameChangeForm.style.display === 'none' ? 'block' : 'none';
+            showUsernameFormBtn.textContent = usernameChangeForm.style.display === 'block' ? '取消修改' : '修改管理员用户名';
+        });
+        showPasswordFormBtn.addEventListener('click', () => {
+            passwordChangeForm.style.display = passwordChangeForm.style.display === 'none' ? 'block' : 'none';
+            showPasswordFormBtn.textContent = passwordChangeForm.style.display === 'block' ? '取消修改' : '修改管理员密码';
+        });
+        showFileUploadBtn.addEventListener('click', () => {
+            fileUploadForm.style.display = fileUploadForm.style.display === 'none' ? 'block' : 'none';
+            showFileUploadBtn.textContent = fileUploadForm.style.display === 'block' ? '取消上传' : '文件管理';
+            if (fileUploadForm.style.display === 'block') {
+                renderFileList();
+            }
+        });
+        showUserManagementBtn.addEventListener('click', () => {
+            userManagementForm.style.display = userManagementForm.style.display === 'none' ? 'block' : 'none';
+            showUserManagementBtn.textContent = userManagementForm.style.display === 'block' ? '取消管理' : '用户管理';
+            if (userManagementForm.style.display === 'block') {
+                renderUserManagement();
+            }
+        });
+        authIcon.addEventListener('click', () => {
+            authDropdown.classList.toggle('show');
+        });
+        closeAuthDropdown.addEventListener('click', () => {
+            authDropdown.classList.remove('show');
+        });
+        showRegisterBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerModal.classList.add('show');
+            authDropdown.classList.remove('show');
+        });
+        closeRegisterModal.addEventListener('click', () => {
+            registerModal.classList.remove('show');
+        });
+        registerModal.addEventListener('click', (e) => {
+            if (e.target === registerModal) {
+                registerModal.classList.remove('show');
+            }
+        });
+        document.addEventListener('click', (e) => {
+            if (!authIcon.contains(e.target) && !authDropdown.contains(e.target)) {
+                authDropdown.classList.remove('show');
+            }
+        });
+
+        // 初始化
+        // renderMessages(); // 已在 loadAllData.then 中调用
+    </script>
+</body>
+</html>
